@@ -15,15 +15,15 @@ public class Current {
 				LocalDate fechaCompensacion=validateDate.getvalidatedate(ctx.pathParam("fechaCompensacion"));
 				LocalDate fechaCalendario=validateDate.getvalidatedate(ctx.pathParam("fechaCalendario"));
 				
+				int hora=Integer.parseInt(ctx.pathParam("fechaCalendario").substring(4, ctx.pathParam("fechaCalendario").length() - 4));
+				System.out.println("minutos " + hora);
+				
 				String dia = ctx.pathParam("dia");
 				Boolean festivo = Boolean.parseBoolean(ctx.pathParam("festivo"));
 				String jornada = ctx.pathParam("jornada");
 
-				System.out.println("fechaCompensacion " + fechaCompensacion);
-				System.out.println("fechaCalendarioD " + fechaCalendario);
-
 				if (!dia.equals("Sabado") && !dia.equals("Domingo") && jornada.equals("Normal") && festivo == false
-						&& (fechaCompensacion.compareTo(fechaCalendario) == 0)) {
+						&& (fechaCompensacion.compareTo(fechaCalendario) == 0)&& hora<21) {
 					ctx.result("Current");
 				} else {
 					ctx.result("Nextday");
