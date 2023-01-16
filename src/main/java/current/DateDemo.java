@@ -4,11 +4,18 @@
 package current;
 
 import java.time.LocalDateTime;
+import java.io.*;
+import java.net.*;
+
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 
 /**
  * @author andre
@@ -71,6 +78,8 @@ public class DateDemo {
 	}
 
 	public static final void armarDatosTransaccionesPrueba() {
+		JSONObject jsonfestivos= jsonurl("http://localhost:8000/FESTIVOS");
+		JSONObject jsonpruebas = jsonurl2("http://localhost:8000/DATOS_PRUEBA");
 		for (String llave : diasDePrueba.keySet()) {
 			boolean esHabil = ((String) diasDePrueba.get(llave)).startsWith("X");
 			DatosHashmap datos = new DatosHashmap();
@@ -92,7 +101,81 @@ public class DateDemo {
 			datosTransaccionesPrueba.put(datos.strFechaCalendarioCierre, datos);
 		}
 
-		mostrardatosprueba();
+		// mostrardatosprueba();
+
+	}
+
+	public static JSONObject jsonurl(String urljson) {
+		try {
+			URL url = new URL(urljson);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Accept", "application/json");
+			if (conn.getResponseCode() != 200) {
+				throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+			}
+			JSONObject json = new JSONObject(IOUtilities.readFullyAsString(conn.getInputStream()));			
+			System.out.println("salida como JSON" + json.get("1016"));
+			conn.disconnect();
+			return json;
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return null;
+	}
+
+	public static JSONObject jsonurl2(String urljson) {
+		try {
+			URL url = new URL(urljson);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Accept", "application/json");
+			if (conn.getResponseCode() != 200) {
+				throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+			}
+			
+			JSONArray json = new JSONArray(IOUtilities.readFullyAsString(conn.getInputStream()));
+			
+			for (int i = 0; i < json.length(); i++) {
+				JSONObject jsonObject = (JSONObject) json.get(i);
+				String fechaCompensacion = (String) jsonObject.get("fechaCompensacion");
+				String fechaTransaccion = (String) jsonObject.get("fechaTransaccion");
+				String cierreActivo = (String) jsonObject.get("cierreActivo");
+				String resultadoEsperado = (String) jsonObject.get("resultadoEsperado");
+				String comentario = (String) jsonObject.get("comentario");
+
+				System.out.println("fechaCompensacion: " + fechaCompensacion);
+				System.out.println("Precio: " + fechaTransaccion);
+				System.out.println("Duracion: " + cierreActivo);
+				System.out.println("Tamaño: " + resultadoEsperado);
+				System.out.println("Tamaño: " + comentario);
+			}
+			// imprimimos como Json
+			System.out.println("salida como JSON" + json.get(1));
+
+			conn.disconnect();
+			// return json.get(0);
+		} catch (Exception e) {
+			System.out.println("error" + e.getMessage());
+		}
+		return null;
+	}
+	
+	public static Object parse(String ruta) throws Exception {
+		BufferedReader brBufferedReader = new BufferedReader(new FileReader(ruta));
+		StringBuffer stringBuffer = new StringBuffer();
+		String aux = null;
+		while ((aux = brBufferedReader.readLine()) != null) {
+			stringBuffer.append(aux);
+		}
+		//JSONObject js = new JSONObject(stringBuffer.toString());
+		String json =stringBuffer.toString();
+		if (json.matches("[\\t ]*?\\[.*?")) {
+			return new JSONArray(json);
+		} else {
+			return new JSONObject(json);
+		}
+
 	}
 
 	public static void mostrardatosprueba() {
